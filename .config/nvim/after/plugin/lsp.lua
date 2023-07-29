@@ -125,44 +125,44 @@ lspconfig.lua_ls.setup {
 }
 
 
--- local null_ls = require("null-ls")
+local null_ls = require("null-ls")
 --
--- null_ls.setup({
---   sources = {
---     null_ls.builtins.diagnostics.trail_space,
---     null_ls.builtins.completion.spell,
---     null_ls.builtins.formatting.trim_newlines,
---     null_ls.builtins.formatting.trim_whitespace,
---   },
---   on_attach = function(client)
---     if client.server_capabilities.documentFormattingProvider then
---       vim.cmd("autocmd BufWritePre <buffer> lua vim.lsp.buf.format({ timeout_ms = 4000 })")
---     end
---   end
--- })
---
--- local helpers = require("null-ls.helpers")
---
--- local langd = {
---   method = null_ls.methods.DIAGNOSTICS,
---   filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
---   generator = null_ls.generator({
---     command = "langd",
---     args = { vim.fn.getcwd() },
---     to_stdin = true,
---     format = "line",
---     on_output = helpers.diagnostics.from_patterns({
---       {
---         pattern = [[(%d+):(%d+):(%d+) (.*)]],
---         groups = { "row", "col", "end_col", "message" },
---         overrides = {
---           diagnostic = {
---             severity = helpers.diagnostics.severities.information,
---           },
---         },
---       },
---     }),
---   }),
--- }
---
--- null_ls.register(langd)
+null_ls.setup({
+  sources = {
+    null_ls.builtins.diagnostics.trail_space,
+    null_ls.builtins.completion.spell,
+    null_ls.builtins.formatting.trim_newlines,
+    null_ls.builtins.formatting.trim_whitespace,
+  },
+  -- on_attach = function(client)
+  --   if client.server_capabilities.documentFormattingProvider then
+  --     vim.cmd("autocmd BufWritePre <buffer> lua vim.lsp.buf.format({ timeout_ms = 4000 })")
+  --   end
+  -- end
+})
+
+local helpers = require("null-ls.helpers")
+
+local langd = {
+  method = null_ls.methods.DIAGNOSTICS,
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+  generator = null_ls.generator({
+    command = "langd",
+    args = { vim.fn.getcwd() },
+    to_stdin = true,
+    format = "line",
+    on_output = helpers.diagnostics.from_patterns({
+      {
+        pattern = [[(%d+):(%d+):(%d+) (.*)]],
+        groups = { "row", "col", "end_col", "message" },
+        overrides = {
+          diagnostic = {
+            severity = helpers.diagnostics.severities.information,
+          },
+        },
+      },
+    }),
+  }),
+}
+
+null_ls.register(langd)

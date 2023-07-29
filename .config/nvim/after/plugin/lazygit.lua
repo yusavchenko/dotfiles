@@ -1,2 +1,2 @@
 -- lazygit
-vim.keymap.set("n", "<leader>gg", ":LazyGit<CR>", { desc = "Lazygit (root dir)" })
+vim.keymap.set("n", "<leader>gg", ":LazyGit<CR>", {silent = true, desc = "Lazygit (root dir)" })
