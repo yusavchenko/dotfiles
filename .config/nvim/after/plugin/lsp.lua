@@ -8,8 +8,12 @@ end)
 local lspconfig = require('lspconfig')
 require('lspconfig').lua_ls.setup(lsp.nvim_lua_ls())
 lsp.setup()
+
 require("mason-lspconfig").setup {
-  ensure_installed = { "lua_ls", "tsserver", "html", "eslint" },
+  ensure_installed = { "lua_ls", "tsserver", "html", "eslint", "jdtls" },
+   handlers = {
+    lsp.default_setup,
+  },
 }
 
 vim.api.nvim_create_autocmd('LspAttach', {
@@ -19,15 +23,15 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>', opts)
     vim.keymap.set('n', 'gd', '<cmd>Telescope lsp_definitions<cr>', { desc = "Goto Definition" })
-    vim.keymap.set('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<cr>', opts)
-    vim.keymap.set('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>', opts)
-    vim.keymap.set('n', 'go', '<cmd>lua vim.lsp.buf.type_definition()<cr>', opts)
-    vim.keymap.set('n', 'gr', '<cmd>Telescope lsp_references<cr>', { buffer = true })
-    vim.keymap.set('n', 'gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>', opts)
+    vim.keymap.set('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<cr>', opts, { desc = "Goto Declaration" })
+    vim.keymap.set('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>', opts, { desc = "Goto Implementation" })
+    vim.keymap.set('n', 'go', '<cmd>lua vim.lsp.buf.type_definition()<cr>', opts, { desc = "Goto Type Definition" })
+    vim.keymap.set('n', 'gr', '<cmd>Telescope lsp_references<cr>', { buffer = true }, { desc = "Goto References" })
+    vim.keymap.set('n', 'gs', '<cmd>lua vim.lsp.buf.signature_help()<cr>', opts, { desc = "Show Signature" })
     vim.keymap.set('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
     vim.keymap.set('n', '<Leader>cr', '<cmd>lua vim.lsp.buf.rename()<cr>', { buffer = event.buf, desc = "Rename" })
-    vim.keymap.set({ 'n', 'x' }, '<F3>', '<cmd>lua vim.lsp.buf.format({async = true})<cr>', opts)
-    vim.keymap.set('n', '<F4>', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
+    vim.keymap.set({ 'n', 'x' }, '<F3>', '<cmd>lua vim.lsp.buf.format({async = true})<cr>', opts, { desc = "Format" })
+    vim.keymap.set('n', '<F4>', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts, { desc = "Code Action" })
 
     vim.keymap.set('n', 'gl', '<cmd>lua vim.diagnostic.open_float()<cr>', opts)
     vim.keymap.set('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>', opts)
@@ -36,11 +40,19 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     vim.keymap.set('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>', opts)
   end
+
 })
 
+require('mason').setup({})
 require('mason-lspconfig').setup()
 
-lspconfig.tsserver.setup({})
+lspconfig.tsserver.setup({
+  settings = {
+    preferences = {
+      importModuleSpecifier = "non-relative",
+    },
+  }
+})
 lspconfig.eslint.setup({
   on_attach = function(client, bufnr)
     vim.api.nvim_create_autocmd("BufWritePre", {
@@ -50,7 +62,15 @@ lspconfig.eslint.setup({
   end,
 })
 
+lspconfig.ltex.setup{
+  cmd = { "ltex-ls" },
+  filetypes = { "markdown", "text", "md", "tex", "txt", "norg"},
+  flags = { debounce_text_changes = 300 },
+}
+
+
 local cmp = require('cmp')
+local cmp_format = require('lsp-zero').cmp_format()
 local cmp_action = require('lsp-zero').cmp_action()
 
 local has_words_before = function()
@@ -59,7 +79,33 @@ local has_words_before = function()
   return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match("^%s*$") == nil
 end
 
+local lspkind = require("lspkind")
+
+local ls = require("luasnip")
+ls.setup();
+
+vim.keymap.set({"i"}, "<C-K>", function() ls.expand() end, {silent = true})
+vim.keymap.set({"i", "s"}, "<C-V>", function() ls.jump( 1) end, {silent = true})
+vim.keymap.set({"i", "s"}, "<C-C>", function() ls.jump(-1) end, {silent = true})
+
+vim.keymap.set({"i", "s"}, "<C-E>", function()
+	if ls.choice_active() then
+		ls.change_choice(1)
+	end
+end, {silent = true})
+
+require("luasnip.loaders.from_vscode").lazy_load()
+
 cmp.setup({
+  window = {
+    completion = cmp.config.window.bordered(),
+    documentation = cmp.config.window.bordered(),
+  },
+  snippet = {
+    expand = function(args)
+      require('luasnip').lsp_expand(args.body)
+    end,
+  },
   sorting = {
     priority_weight = 2,
     comparators = {
@@ -81,7 +127,7 @@ cmp.setup({
   sources = {
     -- Copilot Source
     { name = "copilot",  group_index = 2 },
-    -- Other Sources
+    -- -- Other Sources
     { name = "nvim_lsp", group_index = 2 },
     { name = "path",     group_index = 2 },
     { name = "luasnip",  group_index = 2 },
@@ -96,7 +142,8 @@ cmp.setup({
         fallback()
       end
     end),
-  }
+  },
+  formatting = cmp_format,
 })
 
 
@@ -127,42 +174,42 @@ lspconfig.lua_ls.setup {
 
 local null_ls = require("null-ls")
 --
-null_ls.setup({
-  sources = {
-    null_ls.builtins.diagnostics.trail_space,
-    null_ls.builtins.completion.spell,
-    null_ls.builtins.formatting.trim_newlines,
-    null_ls.builtins.formatting.trim_whitespace,
-  },
-  -- on_attach = function(client)
-  --   if client.server_capabilities.documentFormattingProvider then
-  --     vim.cmd("autocmd BufWritePre <buffer> lua vim.lsp.buf.format({ timeout_ms = 4000 })")
-  --   end
-  -- end
-})
+-- null_ls.setup({
+--   sources = {
+--     null_ls.builtins.diagnostics.trail_space,
+--     null_ls.builtins.completion.spell,
+--     null_ls.builtins.formatting.trim_newlines,
+--     null_ls.builtins.formatting.trim_whitespace,
+--   },
+--   -- on_attach = function(client)
+--   --   if client.server_capabilities.documentFormattingProvider then
+--   --     vim.cmd("autocmd BufWritePre <buffer> lua vim.lsp.buf.format({ timeout_ms = 4000 })")
+--   --   end
+--   -- end
+-- })
 
-local helpers = require("null-ls.helpers")
-
-local langd = {
-  method = null_ls.methods.DIAGNOSTICS,
-  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
-  generator = null_ls.generator({
-    command = "langd",
-    args = { vim.fn.getcwd() },
-    to_stdin = true,
-    format = "line",
-    on_output = helpers.diagnostics.from_patterns({
-      {
-        pattern = [[(%d+):(%d+):(%d+) (.*)]],
-        groups = { "row", "col", "end_col", "message" },
-        overrides = {
-          diagnostic = {
-            severity = helpers.diagnostics.severities.information,
-          },
-        },
-      },
-    }),
-  }),
-}
-
-null_ls.register(langd)
+-- local helpers = require("null-ls.helpers")
+--
+-- local langd = {
+--   method = null_ls.methods.DIAGNOSTICS,
+--   filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+--   generator = null_ls.generator({
+--     command = "langd",
+--     args = { vim.fn.getcwd() },
+--     to_stdin = true,
+--     format = "line",
+--     on_output = helpers.diagnostics.from_patterns({
+--       {
+--         pattern = [[(%d+):(%d+):(%d+) (.*)]],
+--         groups = { "row", "col", "end_col", "message" },
+--         overrides = {
+--           diagnostic = {
+--             severity = helpers.diagnostics.severities.information,
+--           },
+--         },
+--       },
+--     }),
+--   }),
+-- }
+--
+-- null_ls.register(langd)

@@ -13,47 +13,26 @@ return {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
     build = ":Copilot auth",
-    opts = {
-      suggestion = { enabled = true },
-      panel = { enabled = true },
-    }
+    config = function()
+      require("copilot").setup({
+        -- suggestion = { enabled = false },
+        -- panel = { enabled = false },
+      })
+    end
+
   },
   {
     "zbirenbaum/copilot-cmp",
+    dependencies = {  "onsails/lspkind.nvim"},
+
     config = function()
       require("copilot_cmp").setup()
     end
   },
+  { 'AndreM222/copilot-lualine' },
   {
-  "jonahgoldwastaken/copilot-status.nvim",
-  dependencies = {  "zbirenbaum/copilot.lua"
- },
-  event = "BufReadPost",
-}
-
-  -- copilot
-  -- {
-  --   "zbirenbaum/copilot.lua",
-  --   cmd = "Copilot",
-  --   build = ":Copilot auth",
-  --   opts = {
-  --     panel = {
-  --       enabled = true,
-  --       auto_refresh = false,
-  --       keymap = {
-  --         accept = "<CR>",
-  --       }
-  --     },
-  --     suggestion = {
-  --       enabled = true,
-  --       auto_trigger = true,
-  --       keymap = {
-  --         accept = "<Tab>",
-  --         prev = "<M-[>",
-  --         next = "<M-]>",
-  --         dismiss = "<C-]>",
-  --       },
-  --     }
-  --   },
-  -- },
+    "jonahgoldwastaken/copilot-status.nvim",
+    dependencies = {  "zbirenbaum/copilot.lua"},
+    event = "BufReadPost",
+  }
 }

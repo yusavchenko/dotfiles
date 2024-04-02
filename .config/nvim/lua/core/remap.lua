@@ -6,12 +6,19 @@ vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 --select all
 vim.keymap.set("n", "<C-a>", "gg<S-v>G", { desc = "Select all" })
 
+-- Exit to normal mode in terminal on Esc press
+vim.api.nvim_set_keymap('t', '<Esc>', [[<C-\><C-n>]], { noremap = true })
+
+vim.api.nvim_set_keymap('n', '<leader>to', '<cmd>term<cr>', { noremap = true, desc = "Open terminal" })
+
 
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window", remap = true })
 vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Go to lower window", remap = true })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Go to upper window", remap = true })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Go to right window", remap = true })
 
+
+vim.keymap.set("v", "<leader>y", '"+y', {desc = "Copy to clipboard"})
 
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, {desc = "Code Action"})
 vim.keymap.set("v", "<leader>ca", vim.lsp.buf.code_action, {desc = "Code Action"})
@@ -56,3 +63,6 @@ vim.keymap.set("n", "<leader>dq", "<cmd>TroubleToggle quickfix<cr>",
 vim.keymap.set("n", "gR", "<cmd>TroubleToggle lsp_references<cr>",
   {silent = true, noremap = true}
 )
+
+vim.keymap.set("n", "<leader>w", "<cmd>silent write<CR>", { silent = true, desc = "Write" });
+
